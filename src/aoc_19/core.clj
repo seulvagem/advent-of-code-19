@@ -2,7 +2,11 @@
   (:gen-class)
   (:require [aoc-19.base :as base]
             [aoc-19.d1 :as d1]
-            [aoc-19.d2 :as d2]))
+            [aoc-19.d2 :as d2]
+            ;; [clojure.spec.test.alpha :as stest]
+            ))
+
+;; (stest/instrument)
 
 (defmacro run-print-day
   [d]
