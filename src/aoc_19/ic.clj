@@ -10,7 +10,8 @@
 
 (s/def ::ic-state (s/cat :intcode ::intcode :pointer (s/nilable nat-int?)))
 
-(s/fdef ::operation
+#_:clj-kondo/ignore
+(s/fdef ::operation 
   :args ::ic-state
   :ret ::ic-state
   :fn #(let [args (:args %)
