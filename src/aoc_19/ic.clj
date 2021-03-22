@@ -11,7 +11,7 @@
 (s/def ::ic-state (s/cat :intcode ::intcode :pointer (s/nilable nat-int?)))
 
 #_:clj-kondo/ignore
-(s/fdef ::operation 
+(s/fdef ::operation
   :args ::ic-state
   :ret ::ic-state
   :fn #(let [args (:args %)
@@ -38,7 +38,7 @@
         param2 (intcode param2-pos)
         res-pos (intcode res-pos-pos)
         res (+ param1 param2)]
-    [(assoc intcode res-pos res) (inc res-pos-pos)]))
+    [(assoc intcode res-pos res) (int (inc res-pos-pos))]))
 
 (defn multiply
   [intcode first-pos]
@@ -52,7 +52,7 @@
         param2 (intcode param2-pos)
         res (* param1 param2)]
     ;; (println args-values)
-    [(assoc intcode res-pos res) last-pos]))
+    [(assoc intcode res-pos res) (int last-pos)]))
 
 (defn stop
   [intcode _]
@@ -64,23 +64,22 @@
 
 (sdef-ops ::operation add multiply stop cycle)
 
-
 (defn cycle
   "takes an intcode and a pos, executes the operation cycle from the pos and returns the resulting intcode and pos"
   [intcode pos]
   (let [opcode (nth intcode pos)
         operation (operations opcode)]
-    (operation intcode (inc pos))))
+    (operation intcode (int (inc pos)))))
 
 (defn run
   "takes an intcode and runs from the start, returning the resulting intcode"
   [intcode]
-  {:pre [(s/valid? ::intcode intcode)]}
+  ;; {:pre [(s/valid? ::intcode intcode)]}
   (loop [intcode intcode
-         pos 0]
+         pos (int 0)]
     (let [[next-ic next-pos] (cycle intcode pos)]
       (if next-pos
-        (recur next-ic next-pos)
+        (recur next-ic (int next-pos))
         next-ic))))
 
 (defn read-intcode-str
