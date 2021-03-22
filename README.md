@@ -1,17 +1,16 @@
 # aoc-19
 
-FIXME: description
-
+My Advent of code 2019 run with clojure!
+<!-- 
 ## Installation
 
-Download from http://example.com/FIXME.
+Download from http://example.com/FIXME. -->
 
 ## Usage
 
-FIXME: explanation
-
+<!-- FIXME: explanation -->
     $ java -jar aoc-19-0.1.0-standalone.jar [args]
-
+<!-- 
 ## Options
 
 FIXME: listing of options this app accepts.
@@ -22,15 +21,12 @@ FIXME: listing of options this app accepts.
 
 ### Bugs
 
-...
+... -->
 
-### Any Other Sections
-### That You Think
-### Might be Useful
 
 ## License
 
-Copyright © 2021 FIXME
+Copyright © 2021 Felipe "Selvagem" Dias
 
 This program and the accompanying materials are made available under the
 terms of the Eclipse Public License 2.0 which is available at
@@ -42,3 +38,4 @@ Public License, v. 2.0 are satisfied: GNU General Public License as published by
 the Free Software Foundation, either version 2 of the License, or (at your
 option) any later version, with the GNU Classpath Exception which is available
 at https://www.gnu.org/software/classpath/license.html.
+
