@@ -8,5 +8,6 @@
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all
                        :jvm-opts ["-Dclojure.compiler.direct-linking=true"]}
-             :dev {:plugins [[lein-binplus "0.6.6"]]}}
+             :dev {:plugins [[lein-binplus "0.6.6"]]
+                   :dependencies [[org.clojure/test.check "1.1.0"]]}}
   :resource-paths ["resources"])
