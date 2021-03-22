@@ -38,7 +38,7 @@
         param2 (intcode param2-pos)
         res-pos (intcode res-pos-pos)
         res (+ param1 param2)]
-    [(assoc intcode res-pos res) (int (inc res-pos-pos))]))
+    [(assoc intcode res-pos res) (inc res-pos-pos)]))
 
 (defn multiply
   [intcode first-pos]
@@ -52,7 +52,7 @@
         param2 (intcode param2-pos)
         res (* param1 param2)]
     ;; (println args-values)
-    [(assoc intcode res-pos res) (int last-pos)]))
+    [(assoc intcode res-pos res) last-pos]))
 
 (defn stop
   [intcode _]
@@ -69,17 +69,17 @@
   [intcode pos]
   (let [opcode (nth intcode pos)
         operation (operations opcode)]
-    (operation intcode (int (inc pos)))))
+    (operation intcode (inc pos))))
 
 (defn run
   "takes an intcode and runs from the start, returning the resulting intcode"
   [intcode]
   ;; {:pre [(s/valid? ::intcode intcode)]}
   (loop [intcode intcode
-         pos (int 0)]
+         pos 0]
     (let [[next-ic next-pos] (cycle intcode pos)]
       (if next-pos
-        (recur next-ic (int next-pos))
+        (recur next-ic #_(int) next-pos)
         next-ic))))
 
 (defn read-intcode-str
