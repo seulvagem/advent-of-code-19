@@ -3,6 +3,7 @@
   (:require [aoc-19.base :as base]
             [aoc-19.d1 :as d1]
             [aoc-19.d2 :as d2]
+            [aoc-19.d3 :as d3]
             ;; [clojure.spec.test.alpha :as stest]
             ))
 
@@ -22,7 +23,7 @@
 (defn -main
   "I don't do a whole lot ... yet."
   [& args]
-  (doseq-macro run-print-day 1 2)
+  (doseq-macro run-print-day 1 2 3)
   ;; (run-print-day 1)
   ;; (run-print-day 2)
   ;; (run-print-day 3)
