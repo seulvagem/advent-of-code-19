@@ -10,22 +10,25 @@
 
 (s/def ::ic-state (s/cat :intcode ::intcode :pointer (s/nilable nat-int?)))
 
-#_:clj-kondo/ignore
-(s/fdef ::operation
-  :args ::ic-state
-  :ret ::ic-state
-  :fn #(let [args (:args %)
-             ret (:ret %)
-             arg-pointer (:pointer args)
-             ret-pointer (:pointer ret)
-             arg-ic (:intcode args)
-             ret-ic (:intcode ret)]
-         (and (> ret-pointer arg-pointer)
-              (= (count arg-ic) (count ret-ic)))))
+
+(def op-spec (s/fspec :args ::ic-state
+                      :ret ::ic-state
+                      :fn #(let [args (:args %)
+                                 ret (:ret %)
+                                 arg-pointer (:pointer args)
+                                 ret-pointer (:pointer ret)
+                                 arg-ic (:intcode args)
+                                 ret-ic (:intcode ret)]
+                             (and (> ret-pointer arg-pointer)
+                                  (= (count arg-ic) (count ret-ic))))))
 
 (defmacro sdef-ops
   [spec & ops]
-  `(do ~@(map #(list 's/def % (s/spec spec)) ops)))
+  `(do ~@(map #(list 's/def % spec) ops)))
+
+(declare add multiply stop cycle)
+
+(sdef-ops op-spec add multiply stop cycle)
 
 (defn add
   [intcode first-pos]
@@ -61,8 +64,6 @@
 (def operations {1 add
                  2 multiply
                  99 stop})
-
-(sdef-ops ::operation add multiply stop cycle)
 
 (defn cycle
   "takes an intcode and a pos, executes the operation cycle from the pos and returns the resulting intcode and pos"
