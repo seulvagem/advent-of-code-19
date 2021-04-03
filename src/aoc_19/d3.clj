@@ -6,19 +6,19 @@
             [aoc-19.base :as b]
             [clojure.string :as str]))
 
-(def base-loc-spec (s/spec (s/cat :x integer? :y integer?)))
+(def loc-spec (s/cat :x integer? :y integer?))
 
-(s/def ::loc (s/spec base-loc-spec
+(s/def ::loc (s/spec loc-spec
                      :gen  #(gen/fmap (partial into [])
-                                      (s/gen base-loc-spec))))
+                                      (s/gen loc-spec))))
 
 (s/def ::dir-matrix (s/spec ::loc))
 
-(s/def ::w-id keyword?)
+;; (s/def ::w-id keyword?)
 
-(s/def ::w-path (s/every ::loc :kind set?))
+(s/def ::w-path (s/coll-of ::loc :kind set?))
 
-(s/def ::c-board (s/map-of ::w-id ::w-path))
+(s/def ::c-board (s/coll-of ::w-path :count 2))
 
 (s/def ::move-instr (s/cat :dir-matrix ::dir-matrix :moves-quantity integer?))
 

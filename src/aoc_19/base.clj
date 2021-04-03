@@ -29,3 +29,8 @@
   ([s rdx]
    (try (Integer/parseInt s rdx)
         (catch Exception e (println e) nil))))
+
+(defn exercise-first
+  "clojure.spec.alpha should be loaded, same as exercise but returning only the generated values"
+  [& args]
+  (map first (apply clojure.spec.alpha/exercise args)))
