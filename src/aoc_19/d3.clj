@@ -23,23 +23,33 @@
 (s/def ::move-instr (s/cat :dir-matrix ::dir-matrix :moves-quantity integer?))
 
 (defn m+
-  ([matx]
-   matx)
-  ([matx1 matx2]
-   (mapv + matx1 matx2))
-  ([matx1 matx2 & matxs]
-   (apply m+ (m+ matx1 matx2) matxs)))
+  ([matrix]
+   matrix)
+  ([matrix & matrixes]
+   (apply mapv + matrix matrixes)))
 
 (defn move
-  [[move-matx move-qty] current-pos]
-  (loop [i (int 0)
-         c current-pos
-         acc #{}]
-    (if (< i move-qty)
-      (let [nc (m+ c move-matx)
-            nacc (conj acc nc)]
-        (recur (inc i) nc nacc))
-      [c acc])))
+  [path move]
+  (let [loc (last path)]
+    (conj path (m+ loc move))))
+
+
+;; way faster than move-line
+;; (into [[0 0]] (map (juxt inc (constantly 0))) (range 9000))
+
+(defn move-line
+  ([path [move-mat qty]]
+   (let [m (fn [acc _] (move acc move-mat))]
+     (reduce m path (range qty)))
+  ;;  (loop [i (int 0)
+  ;;         loc start
+  ;;         path []]
+  ;;    (if (< i move-qty)
+  ;;      (let [nc (m+ c move-matx)
+  ;;            nacc (conj acc nc)]
+  ;;        (recur (inc i) nc nacc))
+  ;;      path))
+   ))
 
 (defn get-intersections
   [w-paths]
@@ -96,6 +106,5 @@
         paths (map instrs->locs instrss)
         ;; ids (repeatedly (count paths) get-id)
         ;; board (apply hash-map (interleave ids paths))
-        intersections (get-intersections paths)
-        ]
+        intersections (get-intersections paths)]
     (closest-loc-dist intersections)))
