@@ -19,13 +19,21 @@
        (recur total-fuel fuel)
        total-fuel))))
 
+(defn process
+  [input xf]
+  (let [get-fuel (comp (map b/parse-int) xf)]
+    (transduce get-fuel + input)))
+
 (defn -main
   "I don't do a whole lot ... yet."
   [& args]
   (let [input (b/get-split-input 1)
-        get-fuel (comp (map b/parse-int) (map calc-fuel))
-        fuel-sum (transduce get-fuel + input)
-        get-actual-fuel (comp (map b/parse-int) (map calc-recursive-fuel))
-        actual-fuel-sum (transduce get-actual-fuel + input)]
-    [fuel-sum actual-fuel-sum]))
+        process-input #(process input %)
+        ;; get-fuel (comp (map b/parse-int) (map calc-fuel))
+        ;; fuel-sum (transduce get-fuel + input)
+        fuel (process-input (map calc-fuel))
+        ;; get-actual-fuel (comp (map b/parse-int) (map calc-recursive-fuel))
+        ;; actual-fuel-sum (transduce get-actual-fuel + input)
+        actual-fuel (process-input (map calc-recursive-fuel))]
+    [fuel actual-fuel]))
 
