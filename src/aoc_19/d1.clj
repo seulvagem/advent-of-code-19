@@ -15,20 +15,20 @@
   ([total-fuel mass]
    (let [fuel (calc-fuel mass)
          total-fuel (+ total-fuel fuel)]
-     (if (> fuel 8)
+     (if (> fuel 0)
        (recur total-fuel fuel)
        total-fuel))))
 
-(defn process
+(defn process-sum
   [input xf]
-  (let [get-fuel (comp (map b/parse-int) xf)]
-    (transduce get-fuel + input)))
+  (let [process-line (comp (map b/parse-int) xf)]
+    (transduce process-line + input)))
 
 (defn -main
   "I don't do a whole lot ... yet."
   [& args]
   (let [input (b/get-split-input 1)
-        process-input #(process input %)
+        process-input #(process-sum input %)
         ;; get-fuel (comp (map b/parse-int) (map calc-fuel))
         ;; fuel-sum (transduce get-fuel + input)
         fuel (process-input (map calc-fuel))
