@@ -29,3 +29,10 @@
   ([s rdx]
    (try (Integer/parseInt s rdx)
         (catch Exception e (println e) nil))))
+
+(defn upd-if-not
+  "takes old and new values, returns old unless it is falsy, returns new then"
+  [new]
+  #(if-not %
+    new
+    %))
