@@ -63,20 +63,20 @@
 (defn get-closest-intersection
   "takes a coll of loc-sets, returns a tuple of the closest dist and loc"
   [intersections]
-  (let [xcalc-loc-dist (map #((juxt loc-dist identity) %))
+  (let [x-calc-loc-dist (map #((juxt loc-dist identity) %))
         min-by-dist (partial min-key first)]
-    (transduce xcalc-loc-dist min-by-dist [##Inf] intersections)))
+    (transduce x-calc-loc-dist min-by-dist [##Inf] intersections)))
 
 (defn get-results
   [input]
   (let [wire-path-strs (str/split-lines input)
         instructions-lists (map list wire-path-strs)
 
-        xinstr->steps (comp (mapcat #(str/split % #","))
+        x-instr->steps (comp (mapcat #(str/split % #","))
                        (mapcat instr->steps))
         
         
-        instr-str->set #(transduce xinstr->steps acc-pos-to-set [#{} [0 0]] %)
+        instr-str->set #(transduce x-instr->steps acc-pos-to-set [#{} [0 0]] %)
         wire-path-sets (map instr-str->set instructions-lists)
         intersections (apply set/intersection wire-path-sets)
         
