@@ -14,13 +14,6 @@
 
 (s/def ::dir-matrix (s/spec ::loc))
 
-(s/def ::w-id keyword?)
-
-;; (s/def ::w-path (s/every ::loc :kind set?))
-
-;; (s/def ::c-board (s/map-of ::w-id ::w-path))
-
-;; (s/def ::move-instr (s/cat :dir-matrix ::dir-matrix :moves-quantity integer?))
 
 (defn m+
   ([matx]
@@ -51,7 +44,7 @@
 (defn loc-dist [loc]
   (transduce (map abs) + loc))
 
-(defn move-on-board
+(defn acc-move-on-board
   "reducing function that accumulates a board state [board current-pos] with a indexed move [index move-matx], the completing 1-arity returns just the board"
   ([[board pos] [i move]]
    (let [npos (m+ pos move)
@@ -63,16 +56,7 @@
 (defn get-step-counts
   "takes a boards coll and a location [x y], returns the corresponding step-count for each board"
   [boards loc]
-  (map #(inc (% loc)) boards))
-
-(defn acc-pos-to-set
-  ([[acc pos] move]
-   (let [npos (m+ pos move)
-         nacc (conj acc npos)]
-     [nacc npos]))
-  ([[acc _]]
-   acc))
-    
+  (map #(inc (% loc)) boards))    
 
 (defn get-closest-intersection
   "takes a coll of loc-sets, returns a tuple of the closest dist and loc"
@@ -87,29 +71,22 @@
         instructions-lists (map list wire-path-strs)
 
        
-        xinstr->steps (comp (mapcat #(str/split % #","))
-                       (mapcat instr->steps))
-        
-        ;; instr-str->set #(transduce xinstr->steps acc-pos-to-set [#{} [0 0]] %)
-        ;; wire-path-sets (map instr-str->set instructions-lists)
-        ;; intersections (apply set/intersection wire-path-sets)
-        
-        ;; res1 (first (get-closest-intersection intersections))
+        x-instr->indexed-steps (comp (mapcat #(str/split % #","))
+                                     (mapcat instr->steps)
+                                     (map-indexed #(vector %1 %2)))
         
 
-        xinstr->indexed-steps (comp xinstr->steps
-                                    (map-indexed #(vector %1 %2)))
-        instr-str->board #(transduce xinstr->indexed-steps move-on-board [{} [0 0]] %)
+        instr-str->board #(transduce x-instr->indexed-steps acc-move-on-board [{} [0 0]] %)
         boards (map instr-str->board instructions-lists)
         
         intersections (apply set/intersection (map #(set (keys %)) boards))
 
-        xstep-count-sum (comp (map (partial get-step-counts boards))
-                              (map #(apply + %)))
+        x-step-count-sum (comp (map (partial get-step-counts boards))
+                               (map #(apply + %)))
         
         res1 (first (get-closest-intersection intersections))
 
-        res2  (transduce xstep-count-sum min ##Inf intersections)]
+        res2  (transduce x-step-count-sum min ##Inf intersections)]
          
     [res1 res2]))
 
