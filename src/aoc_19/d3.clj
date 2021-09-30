@@ -61,9 +61,9 @@
 (defn get-closest-intersection
   "takes a coll of loc-sets, returns a tuple of the closest dist and loc"
   [intersections]
-  (let [xcalc-loc-dist (map #((juxt loc-dist identity) %))
+  (let [x-calc-loc-dist (map #((juxt loc-dist identity) %))
         min-by-dist (partial min-key first)]
-    (transduce xcalc-loc-dist min-by-dist [##Inf] intersections)))
+    (transduce x-calc-loc-dist min-by-dist [##Inf] intersections)))
 
 (defn get-results
   [input]
