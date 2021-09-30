@@ -90,26 +90,26 @@
         xinstr->steps (comp (mapcat #(str/split % #","))
                        (mapcat instr->steps))
         
-        instr-str->set #(transduce xinstr->steps acc-pos-to-set [#{} [0 0]] %)
-        wire-path-sets (map instr-str->set instructions-lists)
-        intersections (apply set/intersection wire-path-sets)
+        ;; instr-str->set #(transduce xinstr->steps acc-pos-to-set [#{} [0 0]] %)
+        ;; wire-path-sets (map instr-str->set instructions-lists)
+        ;; intersections (apply set/intersection wire-path-sets)
         
-        res1 (first (get-closest-intersection intersections))
+        ;; res1 (first (get-closest-intersection intersections))
         
-        
+
         xinstr->indexed-steps (comp xinstr->steps
                                     (map-indexed #(vector %1 %2)))
         instr-str->board #(transduce xinstr->indexed-steps move-on-board [{} [0 0]] %)
         boards (map instr-str->board instructions-lists)
+        
+        intersections (apply set/intersection (map #(set (keys %)) boards))
+
         xstep-count-sum (comp (map (partial get-step-counts boards))
                               (map #(apply + %)))
         
-        res2 (first (into (sorted-set) xstep-count-sum intersections))]
-        ;; intersections (get-intersections boards)
-        ;; res1 (closest-loc-dist intersections)
-        ;; xf (comp (map (partial get-step-counts boards))
-        ;;          (map #(apply + %)))
-        ;; res2 (first (into (sorted-set) xf intersections))
+        res1 (first (get-closest-intersection intersections))
+
+        res2  (transduce xstep-count-sum min ##Inf intersections)]
          
     [res1 res2]))
 
