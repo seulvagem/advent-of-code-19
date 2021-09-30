@@ -51,17 +51,8 @@
 (defn loc-dist [loc]
   (transduce (map abs) + loc))
 
-(defn closest-loc-dist
-  [locs]
-  (apply min (map #(loc-dist %) locs)))
-
-(defn get-intersections
-  [boards]
-  (let [path-sets (map #(into #{} (keys %)) boards)]
-    (apply set/intersection path-sets)))
-
 (defn move-on-board
-  "reducing function that accumulates a board state [board current-pos] with a indexed move [index move-matx], the completing arity returns just the board"
+  "reducing function that accumulates a board state [board current-pos] with a indexed move [index move-matx], the completing 1-arity returns just the board"
   ([[board pos] [i move]]
    (let [npos (m+ pos move)
          nboard (update board npos (b/upd-if-not i))]
@@ -69,27 +60,50 @@
   ([[board pos]]
    board))
 
-(defn instr-str->board
-  [instr-str]
-  (let [instructions (str/split instr-str #",")
-        xf (comp (mapcat instr->steps)
-                 (map-indexed #(identity [%1 %2])))]
-    (transduce xf move-on-board [{} [0 0]] instructions)))
-
 (defn get-step-counts
   "takes a boards coll and a location [x y], returns the corresponding step-count for each board"
   [boards loc]
   (map #(inc (% loc)) boards))
 
+(defn acc-pos-to-set
+  ([[acc pos] move]
+   (let [npos (m+ pos move)
+         nacc (conj acc npos)]
+     [nacc npos]))
+  ([[acc _]]
+   acc))
+    
+
+(defn get-closest-intersection
+  "takes a coll of loc-sets, returns a tuple of the closest dist and loc"
+  [intersections]
+  (let [xcalc-loc-dist (map #((juxt loc-dist identity) %))
+        min-by-dist (partial min-key first)]
+    (transduce xcalc-loc-dist min-by-dist [##Inf] intersections)))
+
 (defn get-results
   [input]
   (let [wire-path-strs (str/split-lines input)
-        boards (map instr-str->board wire-path-strs)
-        intersections (get-intersections boards)
-        res1 (closest-loc-dist intersections)
-        xf (comp (map (partial get-step-counts boards))
-                 (map #(apply + %)))
-        res2 (first (into (sorted-set) xf intersections))]
+        instructions-vecs (map #(str/split % #",") wire-path-strs)
+        xinstr->steps (mapcat instr->steps)
+        instr-str->set #(transduce xinstr->steps acc-pos-to-set [#{} [0 0]] %)
+        wire-path-sets (map instr-str->set instructions-vecs)
+        intersections (apply set/intersection wire-path-sets)
+        res1 (first (get-closest-intersection intersections))
+        xinstr->indexed-steps (comp xinstr->steps
+                                    (map-indexed #(vector %1 %2)))
+        instr-str->board #(transduce xinstr->indexed-steps move-on-board [{} [0 0]] %)
+        boards (map instr-str->board instructions-vecs)
+        xstep-count-sum (comp (map (partial get-step-counts boards))
+                              (map #(apply + %)))
+        res2 (first (into (sorted-set) xstep-count-sum intersections))
+        ]
+        ;; intersections (get-intersections boards)
+        ;; res1 (closest-loc-dist intersections)
+        ;; xf (comp (map (partial get-step-counts boards))
+        ;;          (map #(apply + %)))
+        ;; res2 (first (into (sorted-set) xf intersections))
+         
     [res1 res2]))
 
 (defn -main []
