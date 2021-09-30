@@ -28,18 +28,19 @@
   ([matx1 matx2]
    (mapv + matx1 matx2))
   ([matx1 matx2 & matxs]
-   (apply m+ (m+ matx1 matx2) matxs)))
+   (reduce m+ (conj matxs matx1 matx2))))
 
-(def dir->matx {\U [0 1]
-                \R [1 0]
-                \D [0 -1]
-                \L [-1 0]})
+(def dir->matx {"U" [0 1]
+                "R" [1 0]
+                "D" [0 -1]
+                "L" [-1 0]})
 
 (defn instr->steps
+  "takes an instruction string containing a direction and step count (e.g. R3), returns a sequence of length step count of the direction matrix "
   [instr-str]
-  (let [dir (first instr-str)
+  (let [[_ dir moves-str] (re-find #"([^\d\W]+)(\d+)" instr-str)
         move-matx (dir->matx dir)
-        n-moves (b/parse-int (re-find #"(?=\w)\d+" instr-str))]
+        n-moves (b/parse-int moves-str)]
     (take n-moves (repeat move-matx))))
 
 (defn abs [n]
@@ -78,17 +79,18 @@
 (defn get-step-counts
   "takes a boards coll and a location [x y], returns the corresponding step-count for each board"
   [boards loc]
-  (map #(% loc) boards))
+  (map #(inc (% loc)) boards))
 
-(defn -main [input]
-  (let [
-        ;; wire-path-strs (b/get-split-input 3)
-        wire-path-strs (str/split-lines input)
+(defn get-results
+  [input]
+  (let [wire-path-strs (str/split-lines input)
         boards (map instr-str->board wire-path-strs)
         intersections (get-intersections boards)
         res1 (closest-loc-dist intersections)
         xf (comp (map (partial get-step-counts boards))
-                 (map #(apply + %))
-                 )
-        res2 (+ (count boards) (first (into (sorted-set) xf intersections)))]
+                 (map #(apply + %)))
+        res2 (first (into (sorted-set) xf intersections))]
     [res1 res2]))
+
+(defn -main []
+  (get-results (b/get-input 3)))

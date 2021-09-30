@@ -31,8 +31,14 @@
         (catch Exception e (println e) nil))))
 
 (defn upd-if-not
-  "takes old and new values, returns old unless it is falsy, returns new then"
+  "takes a new value, returns a fn that expects an old value, it will return old unless it is falsy, returns new then"
   [new]
   #(if-not %
     new
     %))
+
+(defmacro couple-times
+  [times-mult op-mult op]
+  `(dotimes [_# ~times-mult]
+     (time (dotimes [_# ~op-mult]
+             ~op))))
