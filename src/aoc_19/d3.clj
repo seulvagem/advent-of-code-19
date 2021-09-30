@@ -51,20 +51,6 @@
 (defn loc-dist [loc]
   (transduce (map abs) + loc))
 
-(defn move-on-board
-  "reducing function that accumulates a board state [board current-pos] with a indexed move [index move-matx], the completing 1-arity returns just the board"
-  ([[board pos] [i move]]
-   (let [npos (m+ pos move)
-         nboard (update board npos (b/upd-if-not i))]
-     [nboard npos]))
-  ([[board pos]]
-   board))
-
-(defn get-step-counts
-  "takes a boards coll and a location [x y], returns the corresponding step-count for each board"
-  [boards loc]
-  (map #(inc (% loc)) boards))
-
 (defn acc-pos-to-set
   ([[acc pos] move]
    (let [npos (m+ pos move)
@@ -86,32 +72,17 @@
   (let [wire-path-strs (str/split-lines input)
         instructions-lists (map list wire-path-strs)
 
-       
         xinstr->steps (comp (mapcat #(str/split % #","))
                        (mapcat instr->steps))
         
-        ;; instr-str->set #(transduce xinstr->steps acc-pos-to-set [#{} [0 0]] %)
-        ;; wire-path-sets (map instr-str->set instructions-lists)
-        ;; intersections (apply set/intersection wire-path-sets)
         
-        ;; res1 (first (get-closest-intersection intersections))
+        instr-str->set #(transduce xinstr->steps acc-pos-to-set [#{} [0 0]] %)
+        wire-path-sets (map instr-str->set instructions-lists)
+        intersections (apply set/intersection wire-path-sets)
         
-
-        xinstr->indexed-steps (comp xinstr->steps
-                                    (map-indexed #(vector %1 %2)))
-        instr-str->board #(transduce xinstr->indexed-steps move-on-board [{} [0 0]] %)
-        boards (map instr-str->board instructions-lists)
-        
-        intersections (apply set/intersection (map #(set (keys %)) boards))
-
-        xstep-count-sum (comp (map (partial get-step-counts boards))
-                              (map #(apply + %)))
-        
-        res1 (first (get-closest-intersection intersections))
-
-        res2  (transduce xstep-count-sum min ##Inf intersections)]
+        res1 (first (get-closest-intersection intersections))]
          
-    [res1 res2]))
+    [res1]))
 
 (defn -main []
   (get-results (b/get-input 3)))
