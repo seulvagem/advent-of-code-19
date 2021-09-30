@@ -84,20 +84,27 @@
 (defn get-results
   [input]
   (let [wire-path-strs (str/split-lines input)
-        instructions-vecs (map #(str/split % #",") wire-path-strs)
-        xinstr->steps (mapcat instr->steps)
+        instructions-lists (map list wire-path-strs)
+
+       
+        xinstr->steps (comp (mapcat #(str/split % #","))
+                       (mapcat instr->steps))
+        
         instr-str->set #(transduce xinstr->steps acc-pos-to-set [#{} [0 0]] %)
-        wire-path-sets (map instr-str->set instructions-vecs)
+        wire-path-sets (map instr-str->set instructions-lists)
         intersections (apply set/intersection wire-path-sets)
+        
         res1 (first (get-closest-intersection intersections))
+        
+        
         xinstr->indexed-steps (comp xinstr->steps
                                     (map-indexed #(vector %1 %2)))
         instr-str->board #(transduce xinstr->indexed-steps move-on-board [{} [0 0]] %)
-        boards (map instr-str->board instructions-vecs)
+        boards (map instr-str->board instructions-lists)
         xstep-count-sum (comp (map (partial get-step-counts boards))
                               (map #(apply + %)))
-        res2 (first (into (sorted-set) xstep-count-sum intersections))
-        ]
+        
+        res2 (first (into (sorted-set) xstep-count-sum intersections))]
         ;; intersections (get-intersections boards)
         ;; res1 (closest-loc-dist intersections)
         ;; xf (comp (map (partial get-step-counts boards))
