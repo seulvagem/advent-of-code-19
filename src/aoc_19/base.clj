@@ -11,12 +11,6 @@
       ;; io/file
       slurp))
 
-
-;; (defn split-newline
-;;   "splits string at newlines (#\\R)"
-;;   [input]
-;;   (re-seq #".+(?=\R)" input))
-
 (def get-split-input
   (comp str/split-lines get-input))
 

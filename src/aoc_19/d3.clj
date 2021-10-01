@@ -58,12 +58,12 @@
   [boards loc]
   (map #(inc (% loc)) boards))    
 
-(defn get-closest-intersection
-  "takes a coll of loc-sets, returns a tuple of the closest dist and loc"
-  [intersections]
+(defn get-closest-loc
+  "takes a coll of locs, returns a tuple of the closest dist and loc"
+  [locs]
   (let [x-calc-loc-dist (map #((juxt loc-dist identity) %))
         min-by-dist (partial min-key first)]
-    (transduce x-calc-loc-dist min-by-dist [##Inf] intersections)))
+    (transduce x-calc-loc-dist min-by-dist [##Inf] locs)))
 
 (defn get-results
   [input]
@@ -84,7 +84,7 @@
         x-step-count-sum (comp (map (partial get-step-counts boards))
                                (map #(apply + %)))
         
-        res1 (first (get-closest-intersection intersections))
+        res1 (first (get-closest-loc intersections))
 
         res2  (transduce x-step-count-sum min ##Inf intersections)]
          
