@@ -73,7 +73,7 @@
         instructions-lists (map list wire-path-strs)
 
         x-instr->steps (comp (mapcat #(str/split % #","))
-                       (mapcat instr->steps))
+                             (mapcat instr->steps))
         
         
         instr-str->set #(transduce x-instr->steps acc-pos-to-set [#{} [0 0]] %)
