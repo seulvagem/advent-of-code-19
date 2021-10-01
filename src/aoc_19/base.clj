@@ -36,3 +36,7 @@
   `(dotimes [_# ~times-mult]
      (time (dotimes [_# ~op-mult]
              ~op))))
+
+(defn exercise-first
+  [& args]
+  (map first (apply clojure.spec.alpha/exercise args)))
