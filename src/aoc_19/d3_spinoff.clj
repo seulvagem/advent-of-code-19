@@ -18,7 +18,9 @@
 
 (defn is-h
   [line]
-  (contains? line :x))
+  (contains? line :y))
+
+(def is-v (comp not is-h))
 
 (defn ->h
   [y x1 x2]
