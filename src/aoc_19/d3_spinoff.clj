@@ -16,11 +16,11 @@
 (s/def ::h-line (s/keys :req-un [::x-range ::y]))
 (s/def ::v-line (s/keys :req-un [::x ::y-range]))
 
-(defn is-h
+(defn h?
   [line]
   (contains? line :y))
 
-(def is-v (comp not is-h))
+(def v? (comp not h?))
 
 (defn ->h
   [y x1 x2]
