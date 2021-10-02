@@ -28,10 +28,14 @@
                 "D" [0 -1]
                 "L" [-1 0]})
 
+(defn parse-move-string
+  [s]
+  (next (re-find #"([^\d\W]+)(\d+)" s)))
+
 (defn instr->steps
   "takes an instruction string containing a direction and step count (e.g. R3), returns a sequence of length step count of the direction matrix "
   [instr-str]
-  (let [[_ dir moves-str] (re-find #"([^\d\W]+)(\d+)" instr-str)
+  (let [[dir moves-str] (parse-move-string instr-str)
         move-matx (dir->matx dir)
         n-moves (b/parse-int moves-str)]
     (take n-moves (repeat move-matx))))
@@ -65,13 +69,19 @@
         min-by-dist (partial min-key first)]
     (transduce x-calc-loc-dist min-by-dist [##Inf] locs)))
 
+(def x-instr->moves (mapcat #(str/split % #",")))
+
+(defn prepare-input 
+  [input]
+  (->> input
+       str/split-lines
+       (map list)))
+
 (defn get-results
   [input]
-  (let [wire-path-strs (str/split-lines input)
-        instructions-lists (map list wire-path-strs)
-
+  (let [instructions-lists (prepare-input input)
        
-        x-instr->indexed-steps (comp (mapcat #(str/split % #","))
+        x-instr->indexed-steps (comp x-instr->moves
                                      (mapcat instr->steps)
                                      (map-indexed #(vector %1 %2)))
         
