@@ -10,7 +10,16 @@
 (s/def ::coord-key #{:x :y})
 
 (s/def ::coordinate int?)
-(s/def ::coordinate-range (s/tuple int? int?))
+;; (s/def ::coordinate-range (s/tuple int? int?))
+
+(defn sortv
+  [a b]
+  (if (> a b)
+    [b a]
+    [a b]))
+
+(b/sdef-with-gen ::coordinate-range (s/tuple int? int?)
+                 #(apply sortv %))
 
 (s/def ::x ::coordinate)
 (s/def ::y ::coordinate)
@@ -31,13 +40,6 @@
 
 ;; specs 
 
-
-(defn h?
-  [line]
-  (contains? line :y))
-
-(def v? (comp not h?))
-
 (defn ->h
   [y x1 x2]
   {:y y
@@ -50,8 +52,8 @@
 
 
 (s/fdef ->line
-  :args (s/cat :fix-key ::coord-key
-               :range-key ::coord-key
+  :args (s/cat :keys (s/alt :xy (s/cat :x #{:x}, :y #{:y})
+                            :yx (s/cat :y #{:y}, :x #{:x}))
                :initial-position ::pos
                :oriented-distance int?)
   :ret (s/tuple ::line ::pos))

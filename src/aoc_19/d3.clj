@@ -6,10 +6,13 @@
             [aoc-19.base :as b]
             [clojure.string :as str]))
 
-(def base-loc-spec (s/spec (s/cat :x integer? :y integer?)))
-(s/def ::loc (s/spec base-loc-spec
-                     :gen  #(gen/fmap (partial into [])
-                                      (s/gen base-loc-spec))))
+;; (def base-loc-spec (s/spec (s/cat :x integer? :y integer?)))
+;; (s/def ::loc (s/spec base-loc-spec
+;;                      :gen  #(gen/fmap (partial into [])
+;;                                       (s/gen base-loc-spec))))
+(b/sdef-with-gen ::loc (s/cat :x integer? :y integer?)
+                 (partial into []))
+
 
 (s/def ::dir-matrix (s/spec ::loc))
 
