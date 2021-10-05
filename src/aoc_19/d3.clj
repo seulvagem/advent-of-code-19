@@ -7,7 +7,6 @@
             [clojure.string :as str]))
 
 (def base-loc-spec (s/spec (s/cat :x integer? :y integer?)))
-
 (s/def ::loc (s/spec base-loc-spec
                      :gen  #(gen/fmap (partial into [])
                                       (s/gen base-loc-spec))))
@@ -23,14 +22,39 @@
   ([matx1 matx2 & matxs]
    (reduce m+ (conj matxs matx1 matx2))))
 
+(defn abs [n]
+  (if (neg? n)
+    (- n)
+    n))
+
+(defn parse-move-string
+  [s]
+  (next (re-find #"([^\d\W]+)(\d+)" s)))
+
 (def dir->matx {"U" [0 1]
                 "R" [1 0]
                 "D" [0 -1]
                 "L" [-1 0]})
 
-(defn parse-move-string
-  [s]
-  (next (re-find #"([^\d\W]+)(\d+)" s)))
+(defn loc-dist [loc]
+  (transduce (map abs) + loc))
+
+(def x-loc-center-dist (map #((juxt loc-dist identity) %)))
+
+(def min-by-first (partial min-key first))
+
+(defn get-closest-loc-by
+  "takes a coll of locs, returns a tuple of the closest dist, given by the xf first result (must return a coll), and the corresponding loc"
+  [xf locs]
+  (transduce xf min-by-first [##Inf] locs))
+
+(defn prepare-input 
+  [input]
+  (->> input
+       str/split-lines
+       (map list)))
+
+(def x-instr->moves (mapcat #(str/split % #",")))
 
 (defn instr->steps
   "takes an instruction string containing a direction and step count (e.g. R3), returns a sequence of length step count of the direction matrix "
@@ -39,14 +63,6 @@
         move-matx (dir->matx dir)
         n-moves (b/parse-int moves-str)]
     (take n-moves (repeat move-matx))))
-
-(defn abs [n]
-  (if (neg? n)
-    (- n)
-    n))
-
-(defn loc-dist [loc]
-  (transduce (map abs) + loc))
 
 (defn acc-move-on-board
   "reducing function that accumulates a board state [board current-pos] with a indexed move [index move-matx], the completing 1-arity returns just the board"
@@ -62,24 +78,7 @@
 (defn get-step-counts
   "takes a boards coll and a location [x y], returns the corresponding step-count for each board"
   [boards loc]
-  (map #(inc (% loc)) boards))    
-
-(def min-by-first (partial min-key first))
-
-(def x-loc-center-dist (map #((juxt loc-dist identity) %)))
-
-(defn get-closest-loc-by
-  "takes a coll of locs, returns a tuple of the closest dist, given by the xf first result (must return a coll), and the corresponding loc"
-  [xf locs]
-  (transduce xf min-by-first [##Inf] locs))
-
-(def x-instr->moves (mapcat #(str/split % #",")))
-
-(defn prepare-input 
-  [input]
-  (->> input
-       str/split-lines
-       (map list)))
+  (map #(inc (% loc)) boards))
 
 (defn get-boards-intersections
   [boards]
