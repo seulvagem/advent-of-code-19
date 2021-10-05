@@ -40,3 +40,11 @@
 (defn exercise-first
   [& args]
   (map first (apply clojure.spec.alpha/exercise args)))
+
+
+
+;; (defn juxt-args
+;;   "kinda like juxt, but the returned function expects the same number of args as the function, applies each arg individually"
+;;   [& fns]
+;;   (fn [& args] 
+;;     (mapv #(%1 %2) fns args)))
