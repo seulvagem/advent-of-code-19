@@ -31,15 +31,25 @@
     new
     %))
 
+(defn exercise-first
+  [& args]
+  (map first (apply clojure.spec.alpha/exercise args)))
+
 (defmacro couple-times
   [times-mult op-mult op]
   `(dotimes [_# ~times-mult]
      (time (dotimes [_# ~op-mult]
              ~op))))
 
-(defn exercise-first
-  [& args]
-  (map first (apply clojure.spec.alpha/exercise args)))
+(defmacro sdef-with-gen
+  [s-id s-form upd-gen-fn]
+  `(let [s-form# ~s-form]
+     (clojure.spec.alpha/def
+       ~s-id (clojure.spec.alpha/spec
+              s-form#
+              :gen  #(clojure.spec.gen.alpha/fmap
+                      ~upd-gen-fn
+                      (clojure.spec.alpha/gen s-form#))))))
 
 
 
