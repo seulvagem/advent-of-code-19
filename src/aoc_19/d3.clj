@@ -55,19 +55,23 @@
          nboard (update board npos (b/upd-if-not i))]
      [nboard npos]))
   ([[board pos]]
-   board))
+   board)
+  ([]
+   [{} [0 0]]))
 
 (defn get-step-counts
   "takes a boards coll and a location [x y], returns the corresponding step-count for each board"
   [boards loc]
   (map #(inc (% loc)) boards))    
 
-(defn get-closest-loc
-  "takes a coll of locs, returns a tuple of the closest dist and loc"
-  [locs]
-  (let [x-calc-loc-dist (map #((juxt loc-dist identity) %))
-        min-by-dist (partial min-key first)]
-    (transduce x-calc-loc-dist min-by-dist [##Inf] locs)))
+(def min-by-first (partial min-key first))
+
+(def x-loc-center-dist (map #((juxt loc-dist identity) %)))
+
+(defn get-closest-loc-by
+  "takes a coll of locs, returns a tuple of the closest dist, given by the xf first result (must return a coll), and the corresponding loc"
+  [xf locs]
+  (transduce xf min-by-first [##Inf] locs))
 
 (def x-instr->moves (mapcat #(str/split % #",")))
 
@@ -77,26 +81,27 @@
        str/split-lines
        (map list)))
 
+(defn get-boards-intersections
+  [boards]
+  (apply set/intersection (map #(set (keys %)) boards)))
+
 (defn get-results
   [input]
   (let [instructions-lists (prepare-input input)
-       
+
         x-instr->indexed-steps (comp x-instr->moves
                                      (mapcat instr->steps)
                                      (map-indexed #(vector %1 %2)))
-        
+        instr-str->board #(transduce x-instr->indexed-steps acc-move-on-board  %)
 
-        instr-str->board #(transduce x-instr->indexed-steps acc-move-on-board [{} [0 0]] %)
         boards (map instr-str->board instructions-lists)
-        
-        intersections (apply set/intersection (map #(set (keys %)) boards))
+        intersections (get-boards-intersections boards)
 
-        x-step-count-sum (comp (map (partial get-step-counts boards))
-                               (map #(apply + %)))
-        
-        res1 (first (get-closest-loc intersections))
+        x-step-count-sum (comp (map (juxt (partial get-step-counts boards) identity))
+                               (map (juxt #(apply + (first %)) second)))
 
-        res2  (transduce x-step-count-sum min ##Inf intersections)]
+        res1 (get-closest-loc-by x-loc-center-dist intersections)
+        res2 (get-closest-loc-by x-step-count-sum intersections)]
          
     [res1 res2]))
 
