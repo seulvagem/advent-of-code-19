@@ -10,16 +10,7 @@
 (s/def ::coord-key #{:x :y})
 
 (s/def ::coordinate int?)
-;; (s/def ::coordinate-range (s/tuple int? int?))
-
-(defn sortv
-  [a b]
-  (if (> a b)
-    [b a]
-    [a b]))
-
-(b/sdef-with-gen ::coordinate-range (s/tuple int? int?)
-                 #(apply sortv %))
+(s/def ::coordinate-range (s/and (s/tuple int? int?) #(apply < %)))
 
 (s/def ::x ::coordinate)
 (s/def ::y ::coordinate)
@@ -58,12 +49,18 @@
                :oriented-distance int?)
   :ret (s/tuple ::line ::pos))
 
+(defn sortv
+  [a b]
+  (if (> a b)
+    [b a]
+    [a b]))
+
 (defn ->line
   [fix-k range-k i-pos dist]
   (let [range-key (-> range-k name (str "-range") keyword)
         range-i-val (range-k i-pos)
         range-f-val (+ dist range-i-val)
-        range-tuple (vec (sort [range-i-val range-f-val]))
+        range-tuple (sortv range-i-val range-f-val)
         end-pos (assoc i-pos range-k range-f-val)]
     [{fix-k (fix-k i-pos)
       range-key range-tuple}
@@ -160,4 +157,4 @@
   []
   (get-results (b/get-input 3)))
 
-(stest/instrument)
+;; (stest/instrument)
