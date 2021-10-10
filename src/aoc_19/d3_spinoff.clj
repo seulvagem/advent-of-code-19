@@ -10,21 +10,21 @@
 (s/def ::coord-key #{:x :y})
 
 (s/def ::coordinate int?)
-(s/def ::coordinate-range (s/tuple int? int?))
+(s/def ::coordinate-range (s/and (s/tuple int? int?) #(apply < %)))
 
 (s/def ::x ::coordinate)
 (s/def ::y ::coordinate)
 (s/def ::dist int?)
+(s/def ::end-key #{0 1})
 
 (s/def ::x-range ::coordinate-range)
 (s/def ::y-range ::coordinate-range)
 
-(s/def ::loc (s/keys :req-un [::x ::y]))
 (s/def ::pos (s/keys :req-un [::x ::y ::dist]))
 (s/def ::end-dist ::dist)
 
-(s/def ::h-line (s/keys :req-un [::x-range ::y ::end-dist]))
-(s/def ::v-line (s/keys :req-un [::x ::y-range ::end-dist]))
+(s/def ::h-line (s/keys :req-un [::x-range ::y ::end-dist ::end-key]))
+(s/def ::v-line (s/keys :req-un [::x ::y-range ::end-dist ::end-key]))
 (s/def ::line (s/or :h-line ::h-line
                     :v-line ::v-line))
 
@@ -47,12 +47,6 @@
    :y-range [y1 y2]})
 
 
-(defn sortv
-  [a b]
-  (if (> a b)
-    [b a]
-    [a b]))
-
 (s/fdef ->line
   :args (s/cat :keys (s/alt :xy (s/cat :x #{:x}, :y #{:y})
                             :yx (s/cat :y #{:y}, :x #{:x}))
@@ -66,12 +60,14 @@
         range-key (-> range-k name (str "-range") keyword)
         range-i-val (range-k i-loc)
         range-f-val (+ dist range-i-val)
-        range-tuple [range-i-val range-f-val]
-        ;; end-loc (assoc i-loc range-k range-f-val)
-        end-dist (+ i-dist (d3/abs dist))]
+        end-dist (+ i-dist (d3/abs dist))
+        [end-k range-tuple] (if (< range-i-val range-f-val)
+                              [1 [range-i-val range-f-val]]
+                              [0 [range-f-val range-i-val]])]
     [{fix-k fix-val
       range-key range-tuple
-      :end-dist end-dist}
+      :end-dist end-dist
+      :end-key end-k}
      {fix-k fix-val
       range-k range-f-val
       :dist end-dist}]))
@@ -116,20 +112,23 @@
 
 (defn get-intersection
   "takes a h-line and a v-line, gets the intersection point if they have one"
-  [{[hx1 hx2 :as x-range] :x-range, hy :y, h-end-dist :end-dist}
-   {vx :x, [vy1 vy2 :as y-range] :y-range, v-end-dist :end-dist}]
-  (let [[hxi hxf] (sort x-range)
-        [vyi vyf] (sort y-range)]
+  [{[hxi hxf] :x-range, hy :y,, :as h-line}
+   {vx :x, [vyi vyf] :y-range,, :as v-line}]
     (when (and (<= hxi vx hxf)
                (<= vyi hy vyf))
     ;; [vx hy]
-      (let [h-line-intersec-diff (- (d3/abs vy2) (d3/abs hy))
-            v-line-intersec-diff (- (d3/abs hx2) (d3/abs vx))
+      (let [{x-range :x-range, h-end-dist :end-dist, h-end-k :end-key} h-line
+            {y-range :y-range, v-end-dist :end-dist, v-end-k :end-key} v-line
+            hx2 (get x-range h-end-k)
+            vy2 (get y-range v-end-k)
+            h-line-intersec-diff (d3/abs (- vy2 hy))
+            v-line-intersec-diff (d3/abs (- hx2 vx))
             h-dist (- h-end-dist h-line-intersec-diff)
             v-dist (- v-end-dist v-line-intersec-diff)]
         {:x vx
          :y hy
-         :dist (+ h-dist v-dist)}))))
+         :dist (+ h-dist v-dist)})))
+
 
 (s/fdef get-line-intersections
   :args (s/cat :v-lines ::v-lines
@@ -178,7 +177,7 @@
         get-closest-loc-by-center-dist (partial d3/get-closest-loc-by d3/x-loc-center-dist)
         res1 (get-closest-loc-by-center-dist (map pos->loc intersections))
         res2 (apply (partial min-key :dist) intersections)]
-    [res1 res2 intersections]))
+    [res1 res2]))
 
 (defn -main
   []
