@@ -15,7 +15,7 @@
 (s/def ::x ::coordinate)
 (s/def ::y ::coordinate)
 (s/def ::dist int?)
-(s/def ::end-key #{0 1})
+(s/def ::end-val ::coordinate)
 
 (s/def ::x-range ::coordinate-range)
 (s/def ::y-range ::coordinate-range)
@@ -23,8 +23,20 @@
 (s/def ::pos (s/keys :req-un [::x ::y ::dist]))
 (s/def ::end-dist ::dist)
 
-(s/def ::h-line (s/keys :req-un [::x-range ::y ::end-dist ::end-key]))
-(s/def ::v-line (s/keys :req-un [::x ::y-range ::end-dist ::end-key]))
+(defn select-random-end-val-in-range
+  [range-key]
+  (fn
+    [line]
+    (->> line
+         range-key
+         rand-nth
+         (assoc line :end-val))))
+
+(b/sdef-with-gen ::h-line (s/keys :req-un [::x-range ::y ::end-dist ::end-val])
+                 (select-random-end-val-in-range :x-range))
+(b/sdef-with-gen ::v-line (s/keys :req-un [::x ::y-range ::end-dist ::end-val])
+                 (select-random-end-val-in-range :y-range))
+
 (s/def ::line (s/or :h-line ::h-line
                     :v-line ::v-line))
 
@@ -54,20 +66,24 @@
                :oriented-distance ::dist)
   :ret (s/tuple ::line ::pos))
 
+(defn sortv
+  [a b]
+  (if (< a b)
+    [a b]
+    [b a]))
+
 (defn ->line
-  [fix-k range-k {i-dist :dist, :as i-loc} dist]
-  (let [fix-val (fix-k i-loc)
+  [fix-k range-k {i-dist :dist,, :as i-pos} dist]
+  (let [fix-val (fix-k i-pos)
         range-key (-> range-k name (str "-range") keyword)
-        range-i-val (range-k i-loc)
+        range-i-val (range-k i-pos)
         range-f-val (+ dist range-i-val)
         end-dist (+ i-dist (d3/abs dist))
-        [end-k range-tuple] (if (< range-i-val range-f-val)
-                              [1 [range-i-val range-f-val]]
-                              [0 [range-f-val range-i-val]])]
+        range-tuple (sortv range-i-val range-f-val)]
     [{fix-k fix-val
       range-key range-tuple
       :end-dist end-dist
-      :end-key end-k}
+      :end-val range-f-val}
      {fix-k fix-val
       range-k range-f-val
       :dist end-dist}]))
@@ -114,20 +130,18 @@
   "takes a h-line and a v-line, gets the intersection point if they have one"
   [{[hxi hxf] :x-range, hy :y,, :as h-line}
    {vx :x, [vyi vyf] :y-range,, :as v-line}]
-    (when (and (<= hxi vx hxf)
-               (<= vyi hy vyf))
+  (when (and (<= hxi vx hxf)
+             (<= vyi hy vyf))
     ;; [vx hy]
-      (let [{x-range :x-range, h-end-dist :end-dist, h-end-k :end-key} h-line
-            {y-range :y-range, v-end-dist :end-dist, v-end-k :end-key} v-line
-            hx2 (get x-range h-end-k)
-            vy2 (get y-range v-end-k)
-            h-line-intersec-diff (d3/abs (- vy2 hy))
-            v-line-intersec-diff (d3/abs (- hx2 vx))
-            h-dist (- h-end-dist h-line-intersec-diff)
-            v-dist (- v-end-dist v-line-intersec-diff)]
-        {:x vx
-         :y hy
-         :dist (+ h-dist v-dist)})))
+    (let [{h-end-dist :end-dist, hx2 :end-val} h-line
+          {v-end-dist :end-dist, vy2 :end-val} v-line
+          h-line-intersec-diff (d3/abs (- vy2 hy))
+          v-line-intersec-diff (d3/abs (- hx2 vx))
+          h-dist (- h-end-dist h-line-intersec-diff)
+          v-dist (- v-end-dist v-line-intersec-diff)]
+      {:x vx
+       :y hy
+       :dist (+ h-dist v-dist)})))
 
 
 (s/fdef get-line-intersections
@@ -157,7 +171,8 @@
   :ret (s/* ::pos))
 
 (defn get-boards-intersections
-  [{b1-hs :h-lines, b1-vs :v-lines} {b2-hs :h-lines, b2-vs :v-lines}]
+  [{b1-hs :h-lines, b1-vs :v-lines} 
+   {b2-hs :h-lines, b2-vs :v-lines}]
   (concat (intersecs b1-hs b2-vs)
           (intersecs b2-hs b1-vs)))
 
