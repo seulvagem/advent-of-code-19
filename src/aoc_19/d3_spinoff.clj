@@ -7,20 +7,18 @@
 
 ;; specs
 
-(s/def ::coord-key #{:x :y})
-
 (s/def ::coordinate int?)
-(s/def ::coordinate-range (s/and (s/tuple int? int?) #(apply < %)))
-
 (s/def ::x ::coordinate)
 (s/def ::y ::coordinate)
 (s/def ::dist int?)
 (s/def ::end-val ::coordinate)
 
+(s/def ::coordinate-range (s/and (s/tuple int? int?) #(apply < %)))
 (s/def ::x-range ::coordinate-range)
 (s/def ::y-range ::coordinate-range)
 
 (s/def ::pos (s/keys :req-un [::x ::y ::dist]))
+
 (s/def ::end-dist ::dist)
 
 (defn select-random-end-val-in-range
@@ -47,16 +45,6 @@
 (s/def ::step-board (s/keys :req-un [::h-lines ::v-lines ::pos]))
 
 ;; specs 
-
-(defn ->h
-  [y x1 x2]
-  {:y y
-   :x-range [x1 x2]})
-
-(defn ->v
-  [x y1 y2]
-  {:x x
-   :y-range [y1 y2]})
 
 
 (s/fdef ->line
@@ -198,4 +186,4 @@
   []
   (get-results (b/get-input 3)))
 
-(stest/instrument)
+;; (stest/instrument)
